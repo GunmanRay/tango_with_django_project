@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from rango.models import Category
 from rango.models import Page
 
+from rango.forms import CategoryForm
+from django.shortcuts import redirect
 
 def index(request):
     # Construct a dictionary to pass to the template engine as its context.
@@ -39,3 +41,19 @@ def show_category(request, category_name_slug):
         context_dict['category'] = None
         context_dict['pages'] = None
     return render(request, 'rango/category.html', context=context_dict)
+
+def add_category(request):
+    form = CategoryForm()
+
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+
+        if form.is_valid(): 
+            form.save(commit=True)
+
+            return redirect('/rango/')
+        
+        else:
+            print(form.errors)
+
+    return render(request, 'rango/add_category.html', {'form': form})
