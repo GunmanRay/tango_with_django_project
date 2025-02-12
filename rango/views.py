@@ -14,6 +14,7 @@ from rango.forms import PageForm
 from rango.forms import UserForm
 from rango.forms import UserProfileForm
 
+from datetime import datetime
 
 def index(request):
     # Construct a dictionary to pass to the template engine as its context.
@@ -26,11 +27,21 @@ def index(request):
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
 
-    return render(request, 'rango/index.html', context=context_dict)
+    context_dict['visits'] = int(request.COOKIES.get('visits', '1'))
+
+    response = render(request, 'rango/index.html', context=context_dict)
+    visitor_cookie_handler(request, response)
+
+    return response
     # return HttpResponse("Rango says hey there partner! <a href='/rango/about/'>About</a>")
 
 def about(request):
     context_dict = {'greeting': 'This tutorial has been put together by President William Howard Taft'}
+
+    if request.session.test_cookie_worked():
+        print("TEST COOKIE WORKED!")
+        request.session.delete_test_cookie()
+        
     return render(request, 'rango/about.html', context=context_dict)
     # return HttpResponse("Rango says here is the about page. <a href='/rango/'>Index</a>")
 
@@ -159,3 +170,18 @@ def restricted(request):
 def user_logout(request):
     logout(request)
     return redirect(reverse('rango:index'))
+
+def visitor_cookie_handler(request, response):
+    visits = int(request.COOKIES.get('visits', '1'))
+
+    last_visit_cookie = request.COOKIES.get('last_visit', str(datetime.now()))
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
+
+    if (datetime.now() - last_visit_time).days > 0:
+        visits += 1
+        response.set_cookie('last_visit', str(datetime.now()))
+    else:
+        response.set_cookie('last_visit', last_visit_cookie)
+
+    response.set_cookie('visits', visits)
+
