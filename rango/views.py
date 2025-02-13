@@ -28,7 +28,6 @@ def index(request):
     context_dict['pages'] = page_list
 
     visitor_cookie_handler(request)
-    context_dict['visits'] = int(request.COOKIES.get('visits', '1'))
 
     response = render(request, 'rango/index.html', context=context_dict)
 
@@ -41,6 +40,9 @@ def about(request):
     if request.session.test_cookie_worked():
         print("TEST COOKIE WORKED!")
         request.session.delete_test_cookie()
+
+    visitor_cookie_handler(request)
+    context_dict['visits'] = int(request.COOKIES.get('visits', '1'))
         
     return render(request, 'rango/about.html', context=context_dict)
     # return HttpResponse("Rango says here is the about page. <a href='/rango/'>Index</a>")
